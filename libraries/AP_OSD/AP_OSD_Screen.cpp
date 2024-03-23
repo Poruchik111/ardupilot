@@ -867,7 +867,7 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     AP_SUBGROUPINFO(pluscode, "PLUSCODE", 52, AP_OSD_Screen, AP_OSD_Setting),
 #endif
 
-#if HAVE_FILESYSTEM_SUPPORT
+
     // @Param: CALLSIGN_EN
     // @DisplayName: CALLSIGN_EN
     // @Description: Displays callsign from callsign.txt on microSD card
@@ -883,7 +883,6 @@ const AP_Param::GroupInfo AP_OSD_Screen::var_info[] = {
     // @Description: Vertical position on screen
     // @Range: 0 15
     AP_SUBGROUPINFO(callsign, "CALLSIGN", 53, AP_OSD_Screen, AP_OSD_Setting),
-#endif
 
     // @Param: CURRENT2_EN
     // @DisplayName: CURRENT2_EN
@@ -2124,24 +2123,7 @@ void AP_OSD_Screen::draw_pluscode(uint8_t x, uint8_t y)
  */
 void AP_OSD_Screen::draw_callsign(uint8_t x, uint8_t y)
 {
-#if HAVE_FILESYSTEM_SUPPORT
-    if (!callsign_data.load_attempted) {
-        callsign_data.load_attempted = true;
-        FileData *fd = AP::FS().load_file("callsign.txt");
-        if (fd != nullptr) {
-            uint32_t len = fd->length;
-            // trim off whitespace
-            while (len > 0 && isspace(fd->data[len-1])) {
-                len--;
-            }
-            callsign_data.str = strndup((const char *)fd->data, len);
-            delete fd;
-        }
-    }
-    if (callsign_data.str != nullptr) {
-        backend->write(x, y, false, "%s", callsign_data.str);
-    }
-#endif
+    backend->write(x, y, false, "BLACK SKY");
 }
 
 void AP_OSD_Screen::draw_current2(uint8_t x, uint8_t y)

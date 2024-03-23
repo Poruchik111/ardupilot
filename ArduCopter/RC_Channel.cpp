@@ -308,34 +308,61 @@ bool RC_Channel_Copter::do_aux_function(const aux_func_t ch_option, const AuxSwi
             break;
 
         case AUX_FUNC::PARACHUTE_ENABLE:
+        
 #if PARACHUTE == ENABLED
-            // Parachute enable/disable
-            copter.parachute.enabled(ch_flag == AuxSwitchPos::HIGH);
+        switch (ch_flag) {
+            case AuxSwitchPos::HIGH:
+            copter.hw_safety_sw = true;
+               if(copter.motors->armed()) {
+               gcs().send_text(MAV_SEVERITY_INFO,"Safe ON, Weapon Disarmed");
+               }else{
+               gcs().send_text(MAV_SEVERITY_INFO,"Safe SW Check: ON");
+               }
+            break;
+
+            case AuxSwitchPos::MIDDLE:
+       
+            break;
+            case AuxSwitchPos::LOW:
+            copter.hw_safety_sw = false;
+               if (!copter.p_safety_sw.timeout && copter.motors->armed()) {
+               gcs().send_text(MAV_SEVERITY_INFO,"Safe SW OFF, Wait Timer");
+            }
+               if (!copter.motors->armed()) {
+               gcs().send_text(MAV_SEVERITY_INFO,"Safe SW Check: OFF");
+            }
+               if (copter.p_safety_sw.timeout && copter.motors->armed()) {
+               gcs().send_text(MAV_SEVERITY_INFO,"!!! Weapon Armed !!!"); 
+            }
+            
+            break;
+        }
 #endif
             break;
 
         case AUX_FUNC::PARACHUTE_RELEASE:
+
 #if PARACHUTE == ENABLED
-            if (ch_flag == AuxSwitchPos::HIGH) {
-                copter.parachute_manual_release();
-            }
-#endif
+        switch (ch_flag) {
+            case AuxSwitchPos::HIGH:
+              copter.hw_boom_sw = true;
+              if (!copter.motors->armed()) {
+              gcs().send_text(MAV_SEVERITY_INFO,"Blast SW Check: ON");
+              }
+              if (copter.motors->armed() && copter.p_safety_sw.timeout && copter.hw_safety_sw) {
+              gcs().send_text(MAV_SEVERITY_INFO,"Safety Switch!");
+              }
             break;
 
-        case AUX_FUNC::PARACHUTE_3POS:
-#if PARACHUTE == ENABLED
-            // Parachute disable, enable, release with 3 position switch
-            switch (ch_flag) {
-                case AuxSwitchPos::LOW:
-                    copter.parachute.enabled(false);
-                    break;
-                case AuxSwitchPos::MIDDLE:
-                    copter.parachute.enabled(true);
-                    break;
-                case AuxSwitchPos::HIGH:
-                    copter.parachute.enabled(true);
-                    copter.parachute_manual_release();
-                    break;
+        case AuxSwitchPos::MIDDLE:
+       
+            break;
+        case AuxSwitchPos::LOW:
+            copter.hw_boom_sw = false;
+            if (!copter.motors->armed()) {
+               gcs().send_text(MAV_SEVERITY_INFO,"Blast SW Check: OFF");
+            }
+            break;
             }
 #endif
             break;

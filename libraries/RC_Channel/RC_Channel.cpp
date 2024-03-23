@@ -580,8 +580,8 @@ const RC_Channel::LookupTable RC_Channel::lookuptable[] = {
     { AUX_FUNC::RANGEFINDER,"Rangefinder"},
     { AUX_FUNC::FENCE,"Fence"},
     { AUX_FUNC::SPRAYER,"Sprayer"},
-    { AUX_FUNC::PARACHUTE_ENABLE,"ParachuteEnable"},
-    { AUX_FUNC::PARACHUTE_RELEASE,"ParachuteRelease"},
+    { AUX_FUNC::PARACHUTE_ENABLE,"Safety Check"},
+    { AUX_FUNC::PARACHUTE_RELEASE,"Blast Check"},
     { AUX_FUNC::PARACHUTE_3POS,"Parachute3Position"},
     { AUX_FUNC::MISSION_RESET,"MissionReset"},
     { AUX_FUNC::RETRACT_MOUNT1,"RetractMount1"},
@@ -643,13 +643,13 @@ const char *RC_Channel::string_for_aux_pos(AuxSwitchPos pos) const
 {
     switch (pos) {
     case AuxSwitchPos::HIGH:
-        return "HIGH";
+        return "ON";
     case AuxSwitchPos::MIDDLE:
         return "MIDDLE";
     case AuxSwitchPos::LOW:
-        return "LOW";
-    }
+        return "OFF";
     return "";
+    }
 }
 
 #endif // AP_RC_CHANNEL_AUX_FUNCTION_STRINGS_ENABLED

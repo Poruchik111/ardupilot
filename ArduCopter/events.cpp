@@ -498,11 +498,88 @@ void Copter::do_failsafe_action(FailsafeAction action, ModeReason reason){
             set_mode_brake_or_land_with_pause(reason);
             break;
     }
-
-#if AP_GRIPPER_ENABLED
-    if (failsafe_option(FailsafeOption::RELEASE_GRIPPER)) {
-        copter.g2.gripper.release();
-    }
-#endif
 }
 
+bool Copter::set_target_angle_and_climb(float roll_deg, float pitch_deg, float yaw_deg, float climb_rate_ms, bool use_yaw_rate, float yaw_rate_degs)
+{
+    // exit if vehicle is not in Guided mode or Auto-Guided mode
+    if (!flightmode->in_guided_mode()) {
+        return false;
+    }
+
+    Quaternion q;
+    q.from_euler(radians(roll_deg),radians(pitch_deg),radians(yaw_deg));
+
+    mode_guided.set_angle(q, Vector3f{}, climb_rate_ms*100, false);
+    return true;
+}
+
+void Copter::ignition() 
+{
+    Vector3f accel_ig = ahrs.get_accel_ef();
+    const uint32_t time_ms = AP_HAL::millis();
+
+    // safety timer check/start
+    if (p_safety_sw.active != motors->armed()) {
+        p_safety_sw.active = motors->armed();
+        if (p_safety_sw.active) {
+            p_safety_sw.start_ms = time_ms;
+            gcs().send_text(MAV_SEVERITY_CRITICAL,"Armed. Safety Timer 60 sec");
+        } else {
+            p_safety_sw.start_ms = 0;
+            p_safety_sw.timeout = false;
+        }
+    }
+    
+    // check for timeout
+    if (p_safety_sw.active && !p_safety_sw.timeout) {
+        if (time_ms - p_safety_sw.start_ms > 60000) {
+            p_safety_sw.timeout = true;
+            gcs().send_text(MAV_SEVERITY_INFO,"Timer Off, check Safe switch");
+        }
+    } 
+    
+    // Inertial and manual Boom
+    if (motors->armed() && p_safety_sw.timeout && !copter.hw_safety_sw) {
+        accel_ig.z += GRAVITY_MSS;
+        if (!copter.hw_safety_sw && (accel_ig.z < -60 || accel_ig.x < -40 || accel_ig.x > 40 || accel_ig.y < -40 || accel_ig.y > 40)) {
+            gcs().send_text(MAV_SEVERITY_WARNING, "Blast");
+            copter.relay.on(0);
+        }
+        if (motors->armed() && p_safety_sw.timeout && copter.hw_boom_sw) {
+            gcs().send_text(MAV_SEVERITY_WARNING, "Blast");
+            copter.relay.on(0);
+        }
+       
+    }
+    
+    // Self-destroyer timer 2 min
+    if ((selfboom.active != failsafe.radio) && p_safety_sw.timeout){ 
+            selfboom.active = failsafe.radio;  
+        if (selfboom.active){
+            selfboom.start_ms = time_ms;
+        }else{
+            selfboom.start_ms = 0;
+            selfboom.timeout = false;
+        }
+    }
+    
+    if (selfboom.active && !selfboom.timeout) {
+        if (time_ms - selfboom.start_ms > 180000) {
+           gcs().send_text(MAV_SEVERITY_WARNING, "Blast");
+           copter.relay.on(0);
+        }
+    }
+     // special RC Failsafe
+    if (failsafe.radio && motors->armed()){
+    set_mode(Mode::Number::GUIDED_NOGPS, ModeReason::RADIO_FAILSAFE);
+    gcs().send_text(MAV_SEVERITY_WARNING, "No RC. GoUp to 300m");
+        if (baro_alt < 28000){
+        set_target_angle_and_climb(0,0,0,8,false,0);
+        
+        if (baro_alt > 30000){
+        set_target_angle_and_climb(0,0,0,0,false,0);
+    }    
+    }
+    }
+}

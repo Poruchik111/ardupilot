@@ -363,8 +363,8 @@ public:
 
 protected:
 
-    const char *name() const override { return "ACRO"; }
-    const char *name4() const override { return "ACRO"; }
+    const char *name() const override { return "FPV"; }
+    const char *name4() const override { return "FPV"; }
 
     // get_pilot_desired_angle_rates - transform pilot's normalised roll pitch and yaw input into a desired lean angle rates
     // inputs are -1 to 1 and the function returns desired angle rates in centi-degrees-per-second
@@ -417,7 +417,7 @@ public:
 protected:
 
     const char *name() const override { return "ALT_HOLD"; }
-    const char *name4() const override { return "ALTH"; }
+    const char *name4() const override { return "ATTI"; }
 
 private:
 
@@ -1116,8 +1116,8 @@ public:
 
 protected:
 
-    const char *name() const override { return "GUIDED_NOGPS"; }
-    const char *name4() const override { return "GNGP"; }
+    const char *name() const override { return "Rescue"; }
+    const char *name4() const override { return "GOUP"; }
 
 private:
 

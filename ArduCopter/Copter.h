@@ -417,6 +417,22 @@ private:
         uint32_t start_ms;  // system time that EKF began deadreckoning
     } dead_reckoning;
 
+    // program safety timer
+    struct {
+        bool active; // true if safety timer active and count
+        bool timeout;       // true if safety timer timedout 
+        uint32_t start_ms;  // system time that safety timer started
+    } p_safety_sw;
+    
+    struct {
+        bool active; // true if selfdestroyer active and count
+        bool timeout;   
+        uint32_t start_ms;  // system time that selfdestroyer started
+    } selfboom;
+
+    uint8_t hw_safety_sw;
+    uint8_t hw_boom_sw;
+    
     // Motor Output
     MOTOR_CLASS *motors;
     const struct AP_Param::GroupInfo *motors_var_info;
@@ -779,6 +795,8 @@ private:
     bool should_disarm_on_failsafe();
     void do_failsafe_action(FailsafeAction action, ModeReason reason);
     void announce_failsafe(const char *type, const char *action_undertaken=nullptr);
+    void ignition();
+    bool set_target_angle_and_climb(float roll_deg, float pitch_deg, float yaw_deg, float climb_rate_ms, bool use_yaw_rate, float yaw_rate_degs);
 
     // failsafe.cpp
     void failsafe_enable();

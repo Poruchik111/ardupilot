@@ -103,9 +103,6 @@ void AP_Parachute::release()
         return;
     }
 
-    gcs().send_text(MAV_SEVERITY_INFO,"Parachute: Released");
-    AP::logger().Write_Event(LogEvent::PARACHUTE_RELEASED);
-
     // set release time to current system time
     if (_release_time == 0) {
         _release_time = AP_HAL::millis();
@@ -208,19 +205,15 @@ bool AP_Parachute::arming_checks(size_t buflen, char *buffer) const
     if (_enabled > 0) {
         if (_release_type == AP_PARACHUTE_TRIGGER_TYPE_SERVO) {
             if (!SRV_Channels::function_assigned(SRV_Channel::k_parachute_release)) {
-                hal.util->snprintf(buffer, buflen, "Chute has no channel");
+                hal.util->snprintf(buffer, buflen, "Safe SW has no channel");
                 return false;
             }
         } else {
             AP_Relay*_relay = AP::relay();
             if (_relay == nullptr || !_relay->enabled(_release_type)) {
-                hal.util->snprintf(buffer, buflen, "Chute invalid relay %d", int(_release_type));
+                hal.util->snprintf(buffer, buflen, "Safe SW has no relay %d", int(_release_type));
                 return false;
             }
-        }
-        if (_release_initiated) {
-            hal.util->snprintf(buffer, buflen, "Chute is released");
-            return false;
         }
     }
     return true;

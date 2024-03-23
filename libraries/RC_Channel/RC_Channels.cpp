@@ -18,6 +18,10 @@
  *
  */
 
+#include "RC_Channel_config.h"
+
+#if AP_RC_CHANNEL_ENABLED
+
 #include <stdlib.h>
 #include <cmath>
 
@@ -110,7 +114,7 @@ void RC_Channels::clear_overrides(void)
     // copter and plane, RC_Channels needs to control failsafes to resolve this
 }
 
-uint16_t RC_Channels::get_override_mask(void)
+uint16_t RC_Channels::get_override_mask(void) const
 {
     uint16_t ret = 0;
     RC_Channels &_rc = rc();
@@ -165,10 +169,12 @@ void RC_Channels::read_aux_all()
         }
         need_log |= c->read_aux();
     }
+#if HAL_LOGGING_ENABLED
     if (need_log) {
         // guarantee that we log when a switch changes
         AP::logger().Write_RCIN();
     }
+#endif
 }
 
 void RC_Channels::init_aux_all()
@@ -236,18 +242,18 @@ bool RC_Channels::flight_mode_channel_conflicts_with_rc_option() const
   channel numbers start at 1, as this API is designed for use in
   LUA
 */
-bool RC_Channels::get_pwm(uint8_t c, uint16_t &pwm) const
+void RC_Channels::get_pwm(uint8_t c, uint16_t &pwm)
 {
     RC_Channel *chan = rc_channel(c-1);
     if (chan == nullptr) {
-        return false;
+        return;
     }
-    int16_t pwm_signed = chan->get_radio_in();
+    uint16_t pwm_signed = chan->get_radio_in();
     if (pwm_signed < 0) {
-        return false;
+        return;
     }
     pwm = (uint16_t)pwm_signed;
-    return true;
+    return;
 }
 
 // return mask of enabled protocols.
@@ -307,3 +313,5 @@ RC_Channels &rc()
 {
     return *RC_Channels::get_singleton();
 }
+
+#endif  // AP_RC_CHANNEL_ENABLED
