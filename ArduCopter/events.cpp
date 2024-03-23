@@ -542,7 +542,7 @@ void Copter::ignition()
     // Inertial and manual Boom
     if (motors->armed() && p_safety_sw.timeout && !copter.hw_safety_sw) {
         accel_ig.z += GRAVITY_MSS;
-        if (!copter.hw_safety_sw && (accel_ig.z < -60 || accel_ig.x < -40 || accel_ig.x > 40 || accel_ig.y < -40 || accel_ig.y > 40)) {
+        if (!copter.hw_safety_sw && (accel_ig.z < -80 || accel_ig.x < -50 || accel_ig.x > 50 || accel_ig.y < -50 || accel_ig.y > 50)) {
             gcs().send_text(MAV_SEVERITY_WARNING, "Blast");
             copter.relay.on(0);
         }

@@ -648,8 +648,8 @@ const char *RC_Channel::string_for_aux_pos(AuxSwitchPos pos) const
         return "MIDDLE";
     case AuxSwitchPos::LOW:
         return "OFF";
-    return "";
     }
+    return "";
 }
 
 #endif // AP_RC_CHANNEL_AUX_FUNCTION_STRINGS_ENABLED
